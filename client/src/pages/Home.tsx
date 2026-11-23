@@ -103,6 +103,21 @@ function DestinationCard({
 }
 
 // ─── Main Home Component ──────────────────────────────────
+// Curated fallback data ensuring Featured sections never render blank during cold starts
+const defaultFeaturedFlights = [
+  { _id: 'default-f1', airline: 'IndiGo', flightNumber: '6E-101', origin: 'Delhi', destination: 'Mumbai', durationMinutes: 120, stops: 0, price: 4500, cabin: 'Economy' },
+  { _id: 'default-f2', airline: 'Air India', flightNumber: 'AI-202', origin: 'Mumbai', destination: 'Bengaluru', durationMinutes: 120, stops: 0, price: 5500, cabin: 'Economy' },
+  { _id: 'default-f3', airline: 'Vistara', flightNumber: 'UK-303', origin: 'Bengaluru', destination: 'Hyderabad', durationMinutes: 60, stops: 0, price: 3500, cabin: 'Business' },
+  { _id: 'default-f4', airline: 'SpiceJet', flightNumber: 'SG-404', origin: 'Hyderabad', destination: 'Chennai', durationMinutes: 75, stops: 0, price: 2800, cabin: 'Economy' },
+];
+
+const defaultFeaturedHotels = [
+  { _id: 'default-h1', name: 'Taj Mahal Palace', destination: 'Mumbai', rating: 4.9, address: 'Apollo Bunder, Mumbai', rooms: [{ pricePerNight: 12000 }] },
+  { _id: 'default-h2', name: 'ITC Maurya', destination: 'Delhi', rating: 4.8, address: 'Sardar Patel Marg, Delhi', rooms: [{ pricePerNight: 15000 }] },
+  { _id: 'default-h3', name: 'The Leela Palace', destination: 'Bengaluru', rating: 4.9, address: 'Old Airport Road, Bengaluru', rooms: [{ pricePerNight: 20000 }] },
+  { _id: 'default-h4', name: 'Falaknuma Palace', destination: 'Hyderabad', rating: 5.0, address: 'Engine Bowli, Hyderabad', rooms: [{ pricePerNight: 35000 }] },
+];
+
 const Home = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'cabs'>('flights');
@@ -130,15 +145,25 @@ const Home = () => {
   const [pickupTime, setPickupTime] = useState('');
   const [cabPassengers, setCabPassengers] = useState('1');
 
-  // Data
-  const [featuredFlights, setFeaturedFlights] = useState<any[]>([]);
-  const [featuredHotels, setFeaturedHotels] = useState<any[]>([]);
+  // Data with instant fallbacks
+  const [featuredFlights, setFeaturedFlights] = useState<any[]>(defaultFeaturedFlights);
+  const [featuredHotels, setFeaturedHotels] = useState<any[]>(defaultFeaturedHotels);
 
   useEffect(() => {
     axios.get(`${API_BASE}/flights`)
-      .then(r => setFeaturedFlights(r.data.slice(0, 4))).catch(() => {});
+      .then(r => {
+        if (Array.isArray(r.data) && r.data.length > 0) {
+          setFeaturedFlights(r.data.slice(0, 4));
+        }
+      })
+      .catch(() => {});
     axios.get(`${API_BASE}/hotels`)
-      .then(r => setFeaturedHotels(r.data.slice(0, 4))).catch(() => {});
+      .then(r => {
+        if (Array.isArray(r.data) && r.data.length > 0) {
+          setFeaturedHotels(r.data.slice(0, 4));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleFlightSearch = () => {

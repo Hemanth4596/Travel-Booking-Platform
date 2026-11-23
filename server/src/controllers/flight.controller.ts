@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Flight } from '../models/Flight';
 import aviationStackService, { FlightQueryFilters } from '../services/aviationStack.service';
 import { escapeRegex, isValidObjectId } from '../utils/security';
+import { ensureDatabaseSeeded } from '../utils/autoSeed';
 
 /**
  * DB Flights (Bookable inventory)
@@ -35,7 +36,11 @@ export const getFlights = async (req: Request, res: Response) => {
       }
     }
 
-    const flights = await Flight.find(query).limit(100);
+    let flights = await Flight.find(query).limit(100);
+    if (flights.length === 0 && !origin && !destination && !date) {
+      await ensureDatabaseSeeded();
+      flights = await Flight.find(query).limit(100);
+    }
     res.json(flights);
   } catch (error: any) {
     console.error('[getFlights error]:', error);

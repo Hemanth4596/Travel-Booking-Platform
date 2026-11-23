@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Hotel } from '../models/Hotel';
 import { escapeRegex, isValidObjectId } from '../utils/security';
+import { ensureDatabaseSeeded } from '../utils/autoSeed';
 
 export const getHotels = async (req: Request, res: Response) => {
   try {
@@ -14,7 +15,11 @@ export const getHotels = async (req: Request, res: Response) => {
       }
     }
 
-    const hotels = await Hotel.find(query).limit(100);
+    let hotels = await Hotel.find(query).limit(100);
+    if (hotels.length === 0 && !destination) {
+      await ensureDatabaseSeeded();
+      hotels = await Hotel.find(query).limit(100);
+    }
     res.json(hotels);
   } catch (error: any) {
     console.error('[getHotels error]:', error);

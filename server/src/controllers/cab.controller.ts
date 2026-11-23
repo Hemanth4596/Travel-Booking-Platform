@@ -1,10 +1,15 @@
 import { Request, Response } from 'express';
 import { Cab } from '../models/Cab';
 import { isValidObjectId } from '../utils/security';
+import { ensureDatabaseSeeded } from '../utils/autoSeed';
 
 export const getCabs = async (req: Request, res: Response) => {
   try {
-    const cabs = await Cab.find({ isActive: true }).limit(50);
+    let cabs = await Cab.find({ isActive: true }).limit(50);
+    if (cabs.length === 0) {
+      await ensureDatabaseSeeded();
+      cabs = await Cab.find({ isActive: true }).limit(50);
+    }
     res.json(cabs);
   } catch (error: any) {
     console.error('[getCabs error]:', error);
