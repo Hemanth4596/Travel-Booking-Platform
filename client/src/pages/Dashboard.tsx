@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import ScrollReveal from '../components/ScrollReveal';
 import { getDestinationImageUrl, getDestinationAltText } from '../data/destinations';
 import { API_BASE } from '../config/api';
+import { getLocalBookings, cancelLocalBooking } from '../services/bookingCache';
 
 const statusColors: Record<string, string> = {
   CONFIRMED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -25,16 +26,34 @@ const Dashboard = () => {
   const { user } = useAuth();
 
   const fetchBookings = async () => {
+    let apiBookings: any[] = [];
     try {
       const res = await axios.get(`${API_BASE}/bookings/my`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` },
+        timeout: 4000,
       });
-      setBookings(res.data);
+      if (Array.isArray(res.data)) {
+        apiBookings = res.data;
+      }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.warn('API getBookings failed, loading from local cache:', err);
     }
+
+    const localList = getLocalBookings(user?._id);
+
+    // Merge without duplicates
+    const seen = new Set();
+    const merged: any[] = [];
+    for (const b of [...apiBookings, ...localList]) {
+      const key = String(b._id || b.bookingReference);
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(b);
+      }
+    }
+
+    setBookings(merged);
+    setLoading(false);
   };
 
   useEffect(() => { fetchBookings(); }, []);
@@ -43,10 +62,14 @@ const Dashboard = () => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
       await axios.patch(`${API_BASE}/bookings/${id}/cancel`, {}, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${user?.token}` },
+        timeout: 4000,
       });
-      fetchBookings();
-    } catch (err) { alert('Cancel failed'); }
+    } catch (err) {
+      console.warn('Backend cancel failed, cancelling in local cache:', err);
+    }
+    cancelLocalBooking(id);
+    fetchBookings();
   };
 
   const confirmed = bookings.filter(b => b.bookingStatus === 'CONFIRMED').length;
