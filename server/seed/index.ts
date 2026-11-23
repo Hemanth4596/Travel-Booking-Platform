@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import bcrypt from 'bcrypt';
+// @ts-ignore
+import bcrypt from 'bcryptjs';
 import { User } from '../src/models/User';
 import { Flight } from '../src/models/Flight';
 import { Hotel } from '../src/models/Hotel';
@@ -82,23 +83,43 @@ const seedDB = async () => {
       console.log('Cabs already exist, skipping seed');
     }
 
-    // Seed Admin User if not exists
-    const adminExists = await User.findOne({ email: 'admin@travelbooking.com' });
-    if (!adminExists) {
+    // Helper to ensure demo users exist
+    const ensureUser = async (name: string, email: string, rawPassword: string, role: 'USER' | 'ADMIN', phone: string) => {
+      const existing = await User.findOne({ email });
       const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash('admin123', salt);
-      await User.create({
-        name: 'Admin User',
-        email: 'admin@travelbooking.com',
-        passwordHash,
-        role: 'ADMIN'
-      });
-      console.log('Admin User Created');
-    }
+      const passwordHash = await bcrypt.hash(rawPassword, salt);
+      if (!existing) {
+        await User.create({ name, email, passwordHash, role, phone });
+        console.log(`User created: ${email} (${name})`);
+      } else {
+        existing.name = name;
+        existing.passwordHash = passwordHash;
+        existing.role = role;
+        existing.phone = phone;
+        await existing.save();
+        console.log(`User updated: ${email} (${name})`);
+      }
+    };
 
-    process.exit();
+    // Seed Admin User
+    await ensureUser('Admin User', 'admin@travelbooking.com', 'admin123', 'ADMIN', '+1-555-0100');
+
+    // Seed Demo User 1
+    await ensureUser('Demo User 1', 'user1@travelbooking.com', 'User1@123', 'USER', '+1-555-0101');
+
+    // Seed Demo User 2
+    await ensureUser('Demo User 2', 'user2@travelbooking.com', 'User2@123', 'USER', '+1-555-0102');
+
+    console.log('\n=======================================');
+    console.log('DEMO ACCOUNTS READY:');
+    console.log('  1. user1@travelbooking.com / User1@123 (Demo User 1)');
+    console.log('  2. user2@travelbooking.com / User2@123 (Demo User 2)');
+    console.log('  3. admin@travelbooking.com / admin123 (Admin)');
+    console.log('=======================================\n');
+
+    process.exit(0);
   } catch (error) {
-    console.error(error);
+    console.error('Seeding error:', error);
     process.exit(1);
   }
 };

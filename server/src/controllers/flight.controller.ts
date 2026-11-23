@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Flight } from '../models/Flight';
 import aviationStackService, { FlightQueryFilters } from '../services/aviationStack.service';
+import { escapeRegex, isValidObjectId } from '../utils/security';
 
 /**
  * DB Flights (Bookable inventory)
@@ -8,30 +9,55 @@ import aviationStackService, { FlightQueryFilters } from '../services/aviationSt
 export const getFlights = async (req: Request, res: Response) => {
   try {
     const { origin, destination, date } = req.query;
-    let query: any = { isActive: true };
-    if (origin) query.origin = new RegExp(origin as string, 'i');
-    if (destination) query.destination = new RegExp(destination as string, 'i');
-    // Simplified date matching for demo
-    if (date) {
-      const queryDate = new Date(date as string);
-      const nextDate = new Date(queryDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      query.departureTime = { $gte: queryDate, $lt: nextDate };
+    const query: any = { isActive: true };
+
+    if (origin && typeof origin === 'string') {
+      const sanitizedOrigin = escapeRegex(origin.trim());
+      if (sanitizedOrigin) {
+        query.origin = new RegExp(sanitizedOrigin, 'i');
+      }
     }
-    const flights = await Flight.find(query);
+
+    if (destination && typeof destination === 'string') {
+      const sanitizedDest = escapeRegex(destination.trim());
+      if (sanitizedDest) {
+        query.destination = new RegExp(sanitizedDest, 'i');
+      }
+    }
+
+    // Date matching
+    if (date && typeof date === 'string') {
+      const queryDate = new Date(date);
+      if (!isNaN(queryDate.getTime())) {
+        const nextDate = new Date(queryDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+        query.departureTime = { $gte: queryDate, $lt: nextDate };
+      }
+    }
+
+    const flights = await Flight.find(query).limit(100);
     res.json(flights);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('[getFlights error]:', error);
+    res.status(500).json({ error: 'Failed to search flights' });
   }
 };
 
 export const getFlightById = async (req: Request, res: Response) => {
   try {
-    const flight = await Flight.findById(req.params.id);
-    if (flight) res.json(flight);
-    else res.status(404).json({ error: 'Flight not found' });
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid flight ID format' });
+    }
+
+    const flight = await Flight.findById(id);
+    if (flight) {
+      return res.json(flight);
+    }
+    return res.status(404).json({ error: 'Flight not found' });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('[getFlightById error]:', error);
+    return res.status(500).json({ error: 'Failed to fetch flight details' });
   }
 };
 
@@ -52,23 +78,25 @@ export const getLiveFlights = async (req: Request, res: Response) => {
     const filters: FlightQueryFilters = {};
 
     if (flightNumber && typeof flightNumber === 'string') {
-      filters.flightNumber = flightNumber.trim();
+      filters.flightNumber = flightNumber.trim().slice(0, 20);
     }
     if (airline && typeof airline === 'string') {
-      filters.airlineIata = airline.trim().toUpperCase();
+      filters.airlineIata = airline.trim().toUpperCase().slice(0, 10);
     }
     if (depAirport && typeof depAirport === 'string') {
-      filters.depIata = depAirport.trim().toUpperCase();
+      filters.depIata = depAirport.trim().toUpperCase().slice(0, 10);
     }
     if (arrAirport && typeof arrAirport === 'string') {
-      filters.arrIata = arrAirport.trim().toUpperCase();
+      filters.arrIata = arrAirport.trim().toUpperCase().slice(0, 10);
     }
     if (flightStatus && typeof flightStatus === 'string') {
-      filters.flightStatus = flightStatus.trim().toLowerCase();
+      filters.flightStatus = flightStatus.trim().toLowerCase().slice(0, 20);
     }
     if (limit) {
       const limitNum = parseInt(limit as string, 10);
-      if (!isNaN(limitNum)) filters.limit = limitNum;
+      if (!isNaN(limitNum) && limitNum > 0) {
+        filters.limit = Math.min(limitNum, 50);
+      }
     }
 
     const data = await aviationStackService.getLiveFlights(filters);
@@ -88,10 +116,11 @@ export const getLiveFlights = async (req: Request, res: Response) => {
 export const getLiveFlightByNumber = async (req: Request, res: Response) => {
   try {
     const { flightNumber } = req.params;
-    if (!flightNumber) {
+    if (!flightNumber || typeof flightNumber !== 'string') {
       return res.status(400).json({ error: 'Flight number is required' });
     }
-    const data = await aviationStackService.getFlightByNumber(flightNumber);
+    const cleanFlightNumber = flightNumber.trim().slice(0, 20);
+    const data = await aviationStackService.getFlightByNumber(cleanFlightNumber);
     res.json(data);
   } catch (error: any) {
     res.status(500).json({

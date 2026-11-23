@@ -15,20 +15,30 @@ const Register = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (name.trim().length < 2) {
+      setError('Name must be at least 2 characters.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      await register(name, email, password);
+      await register(name.trim(), email.trim().toLowerCase(), password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed');
+      setError(err.response?.data?.error || 'Registration failed. Please check your details.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050a1a] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#050a1a] flex items-center justify-center px-4 py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -40,10 +50,10 @@ const Register = () => {
             <span className="text-xl font-bold text-white">TravelPlatform</span>
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Create your account</h2>
-          <p className="text-slate-400 text-sm">Join us and start exploring.</p>
+          <p className="text-slate-400 text-sm">Join us and start exploring destinations worldwide.</p>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8">
+        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-xl">
           {error && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-sm mb-5">
               {error}
@@ -56,8 +66,13 @@ const Register = () => {
               <div className="relative">
                 <UserCircle size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
-                  type="text" value={name} onChange={e => setName(e.target.value)} required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all"
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                  minLength={2}
+                  maxLength={60}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm"
                   placeholder="Your name"
                 />
               </div>
@@ -67,8 +82,12 @@ const Register = () => {
               <div className="relative">
                 <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
-                  type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  maxLength={100}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm"
                   placeholder="you@example.com"
                 />
               </div>
@@ -78,15 +97,20 @@ const Register = () => {
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
-                  type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all"
-                  placeholder="••••••••"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all text-sm"
+                  placeholder="At least 6 characters"
                 />
               </div>
             </div>
             <button
-              type="submit" disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
             >
               {loading ? 'Creating account...' : 'Create Account'} <ArrowRight size={16} />
             </button>

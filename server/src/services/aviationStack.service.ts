@@ -106,7 +106,8 @@ export class AviationStackService {
     if (
       !key ||
       key === 'your_api_key_here' ||
-      key === 'your_aviationstack_api_key_here'
+      key === 'your_aviationstack_api_key_here' ||
+      key === 'your_aviation_edge_api_key_here'
     ) {
       return null;
     }
