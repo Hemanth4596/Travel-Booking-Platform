@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Clock, ArrowRight, SortAsc, Loader2 } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { API_BASE } from '../config/api';
 
 const Flights = () => {
   const [flights, setFlights] = useState<any[]>([]);
@@ -22,7 +23,7 @@ const Flights = () => {
         const dest = searchParams.get('destination');
         if (origin) params.origin = origin;
         if (dest) params.destination = dest;
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/flights`, { params });
+        const res = await axios.get(`${API_BASE}/flights`, { params });
         setFlights(res.data);
       } catch (err) {
         console.error(err);
@@ -37,7 +38,7 @@ const Flights = () => {
     if (!user) { navigate('/login'); return; }
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`,
+        `${API_BASE}/bookings`,
         {
           bookingType: 'FLIGHT', itemId: flight._id, itemSnapshot: flight,
           travelDetails: { origin: flight.origin, destination: flight.destination, departureTime: flight.departureTime },

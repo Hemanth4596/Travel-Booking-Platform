@@ -3,15 +3,39 @@
   "version": "1.0.0",
   "description": "Travel Booking Platform",
   "main": "index.js",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
-    "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client && npm run dev",
+    "install:all": "npm install",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "build": "cd client && npm run build && cd ../server && npm run build",
-    "seed": "cd server && npm run seed"
+    "build": "npm run build --workspace=client && npm run build --workspace=server",
+    "build:vercel": "npm run build --workspace=client",
+    "seed": "npm run seed --workspace=server"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.2",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.4"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.12.7",
+    "@types/uuid": "^9.0.8",
+    "@vercel/node": "^3.2.35",
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
   }
 }

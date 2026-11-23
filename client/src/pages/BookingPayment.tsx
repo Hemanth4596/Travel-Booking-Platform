@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getDestinationImageUrl, getDestinationAltText } from '../data/destinations';
+import { API_BASE } from '../config/api';
 
 type PaymentMethodType = 'CARD' | 'UPI' | 'NET_BANKING';
 type SimulationOutcomeType = 'SIMULATED_SUCCESS' | 'SIMULATED_FAILURE' | 'SIMULATED_CANCELLED';
@@ -64,7 +65,7 @@ export default function BookingPayment() {
     const fetchBooking = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${id}`,
+          `${API_BASE}/bookings/${id}`,
           { headers: { Authorization: `Bearer ${user?.token}` } }
         );
         setBooking(res.data);
@@ -118,7 +119,7 @@ export default function BookingPayment() {
       };
 
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/payments/simulate`,
+        `${API_BASE}/payments/simulate`,
         payload,
         { headers: { Authorization: `Bearer ${user?.token}` } }
       );

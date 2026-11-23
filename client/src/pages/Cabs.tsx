@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Car, Users, ArrowRight, Loader2 } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { API_BASE } from '../config/api';
 
 const Cabs = () => {
   const [cabs, setCabs] = useState<any[]>([]);
@@ -15,7 +16,7 @@ const Cabs = () => {
   useEffect(() => {
     const fetchCabs = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/cabs`);
+        const res = await axios.get(`${API_BASE}/cabs`);
         setCabs(res.data);
       } catch (err) {
         console.error(err);
@@ -30,7 +31,7 @@ const Cabs = () => {
     if (!user) { navigate('/login'); return; }
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`,
+        `${API_BASE}/bookings`,
         {
           bookingType: 'CAB', itemId: cab._id, itemSnapshot: cab,
           travelDetails: { vehicleType: cab.vehicleType, vehicleName: cab.vehicleName },

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../config/api';
 
 // Ensure cross-origin cookies are sent with requests
 axios.defaults.withCredentials = true;
@@ -24,20 +25,14 @@ export const AuthProvider = ({ children }: any) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`,
-      { email, password }
-    );
+    const res = await axios.post(`${API_BASE}/auth/login`, { email, password });
     localStorage.setItem('userInfo', JSON.stringify(res.data));
     setUser(res.data);
     return res.data;
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/register`,
-      { name, email, password }
-    );
+    const res = await axios.post(`${API_BASE}/auth/register`, { name, email, password });
     localStorage.setItem('userInfo', JSON.stringify(res.data));
     setUser(res.data);
     return res.data;
@@ -45,7 +40,7 @@ export const AuthProvider = ({ children }: any) => {
 
   const logout = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/logout`);
+      await axios.post(`${API_BASE}/auth/logout`);
     } catch {
       // Ignore network errors on logout
     }

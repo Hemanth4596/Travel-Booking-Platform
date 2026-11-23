@@ -7,6 +7,7 @@ import {
   ArrowUpRight, Sparkles
 } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { API_BASE } from '../config/api';
 import axios from 'axios';
 import { getDestinationImageUrl, getDestinationAltText } from '../data/destinations';
 
@@ -134,9 +135,9 @@ const Home = () => {
   const [featuredHotels, setFeaturedHotels] = useState<any[]>([]);
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/flights`)
+    axios.get(`${API_BASE}/flights`)
       .then(r => setFeaturedFlights(r.data.slice(0, 4))).catch(() => {});
-    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hotels`)
+    axios.get(`${API_BASE}/hotels`)
       .then(r => setFeaturedHotels(r.data.slice(0, 4))).catch(() => {});
   }, []);
 

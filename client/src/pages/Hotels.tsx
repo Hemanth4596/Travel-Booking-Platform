@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building, MapPin, Star, Users, Loader2 } from 'lucide-react';
 import ScrollReveal from '../components/ScrollReveal';
+import { API_BASE } from '../config/api';
 import { getDestinationImageUrl, getDestinationAltText } from '../data/destinations';
 
 const Hotels = () => {
@@ -20,7 +21,7 @@ const Hotels = () => {
         const params: any = {};
         const dest = searchParams.get('destination');
         if (dest) params.destination = dest;
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hotels`, { params });
+        const res = await axios.get(`${API_BASE}/hotels`, { params });
         setHotels(res.data);
       } catch (err) {
         console.error(err);
@@ -35,7 +36,7 @@ const Hotels = () => {
     if (!user) { navigate('/login'); return; }
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`,
+        `${API_BASE}/bookings`,
         {
           bookingType: 'HOTEL', itemId: hotel._id,
           itemSnapshot: { hotelName: hotel.name, roomName: room.name, destination: hotel.destination },

@@ -6,6 +6,7 @@ import { Plane, Building, Car, Calendar, XCircle, CheckCircle, Clock, ArrowRight
 import { Link } from 'react-router-dom';
 import ScrollReveal from '../components/ScrollReveal';
 import { getDestinationImageUrl, getDestinationAltText } from '../data/destinations';
+import { API_BASE } from '../config/api';
 
 const statusColors: Record<string, string> = {
   CONFIRMED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -25,7 +26,7 @@ const Dashboard = () => {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/my`, {
+      const res = await axios.get(`${API_BASE}/bookings/my`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setBookings(res.data);
@@ -41,7 +42,7 @@ const Dashboard = () => {
   const handleCancel = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
     try {
-      await axios.patch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${id}/cancel`, {}, {
+      await axios.patch(`${API_BASE}/bookings/${id}/cancel`, {}, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       fetchBookings();

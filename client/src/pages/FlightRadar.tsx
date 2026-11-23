@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import type { NormalizedFlight, LiveFlightResponse } from '../types/flights';
+import { API_BASE } from '../config/api';
 
 // Lazy load 3D Globe component for optimal initial bundle performance
 const FlightRadarCanvas = lazy(() => import('../components/3d/FlightRadarGlobe'));
@@ -65,7 +66,7 @@ export default function FlightRadar() {
 
     try {
       const res = await axios.get<LiveFlightResponse>(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/flights/live`,
+        `${API_BASE}/flights/live`,
         { params: { limit: 25 }, timeout: 12000 }
       );
 
