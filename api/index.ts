@@ -8,11 +8,7 @@ export default async function handler(req: any, res: any) {
     // Automatically seed inventory if new database is empty
     ensureDatabaseSeeded().catch((e) => console.error('AutoSeed background warning:', e));
   } catch (err: any) {
-    console.error('Database connection error in Vercel handler:', err);
-    return res.status(500).json({
-      error: 'Database connection failed. Please ensure MONGODB_URI is configured in Vercel Environment Variables.',
-      details: process.env.NODE_ENV === 'development' ? err?.message : undefined,
-    });
+    console.warn('[Vercel Serverless]: Database connection failed. Entering resilient demo mode:', err?.message);
   }
 
   return app(req, res);
